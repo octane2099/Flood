@@ -1,0 +1,41 @@
+# Machine-specific IDE and Android SDK settings
+/.idea/
+/.vscode/
+*.iml
+local.properties
+
+# Private service configuration (commit the .example files instead)
+/secrets.properties
+**/google-services.json
+**/GoogleService-Info.plist
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+**/*service-account*.json
+
+# Local backups and source exports; these can contain private configuration
+/.private/
+/dist/
+
+# Build output and caches
+.gradle/
+**/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.hprof
+*.log
+__pycache__/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
