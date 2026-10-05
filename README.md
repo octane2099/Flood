@@ -1,279 +1,71 @@
+# Flood Help
 
-# Flood Help - README
+Flood Help 是一个面向洪水信息与应急辅助场景的 Android 团队项目，包含地图定位、联系人、求助入口、生存提示、设置和 AI 问答页面。
 
-This is a development project. Real service configuration is local-only; follow
-the setup instructions below before running the app. See
-[source and asset review](docs/SOURCE_REVIEW.md) for inherited/third-party material
-and [privacy preparation notes](docs/PRIVACY_REVIEW.md) before sharing source.
+本仓库基于团队项目整理，个人主要负责 Gemini 接口接入与 AI 聊天前端，包括消息展示、上下文组织、异步请求、加载状态及异常处理。其他页面和既有基础功能来自团队协作，不作个人独立原创声明。
 
-This is an independent source snapshot of a team project, including work on
-Gemini integration and the Android AI chat interface. It does not inherit the
-original Git history and has no remote configured at creation. Source references
-and third-party notices remain in the source review; a new repository does not
-imply sole authorship. Real service configuration is not included.
+## 技术栈
 
-## Overview
+- Java、Android XML 布局、Material Components
+- Firebase AI SDK、Gemini、Firebase Realtime Database
+- Google Maps、Google Sign-In、Open-Meteo、OkHttp
+- Gradle Wrapper、JUnit、Espresso
 
-This Android application, Flood Help, combines map functionality, API information acquisition, and user information sharing. It will provide users with comprehensive and timely local information support, enabling them to more effectively find the resources they need in emergency situations and ensure the safety of their families and communities. Efficient information acquisition, easy-to-understand presentation of information, and easy-to-use features must be considered.
+依赖及版本以 `app/build.gradle.kts` 和 `gradle/libs.versions.toml` 为准。
 
-## Table of Contents
+## AI 模块
 
-1. [Features](#features)
-2. [Architecture](#architecture)
-3. [Installation](#installation)
-4. [Setup](#setup)
-5. [Usage Guide](#usage-guide)
-6. [Accessibility Features](#accessibility-features)
-7. [Emergency Features](#emergency-features)
-8. [Contact Management](#contact-management)
-9. [Mapping and Location Services](#mapping-and-location-services)
-10. [Settings and Customization](#settings-and-customization)
-11. [Development Guidelines](#development-guidelines)
-12. [Testing and Debugging](#testing-and-debugging)
-13. [Contributing](#contributing)
+首页可以进入 `AlertNotification` 聊天页面。客户端通过 Firebase AI SDK 创建生成模型，当前代码使用 `gemini-2.5-flash`，并通过 Java Futures 异步获取回答。
 
-## Features
+- `AlertNotification.java`：模型初始化、消息列表、发送状态、45 秒请求超时和错误处理。
+- `AlertChatPrompt.java`：组织用户问题、最近的对话记录以及有效的降雨、位置和时间上下文；缺少告警数据时按普通问答处理。
+- `activity_alert_notification.xml`、`item_chat_ai.xml`、`item_chat_user.xml`：聊天页面和双方消息布局。
 
-The app offers the following core functionalities:
+以上 Java 文件位于 `app/src/main/java/com/example/myapplication6/`，布局位于 `app/src/main/res/layout/`。
 
-1. **High Contrast Mode and Accessibility Settings**: Customize the app's visual appearance to support users with visual impairments.
-2. **Emergency Help and Alerts**: Provides quick access to emergency contacts and alert notifications.
-3. **Contact Management**: Users can manage their contacts efficiently.
-4. **Mapping and Geolocation**: Includes mapping functionalities and location-based services.
-5. **Customizable User Settings**: Allows the user to adjust preferences for a personalized experience.
-6. **Login and User Management**: Supports user login and account management.
-7. **Information Sharing with Verified Map Updates**: Share and receive timely location-based updates on traffic, hazards, and events, supported by crowdsourced data verification.
-8. **Real-Time Location Updates for Family:**: Share real-time location updates with family members and receive notifications based on location changes.
+## 本地运行
 
+### 环境
 
-### Key Technologies Used
+- Android Studio，Gradle 使用 JDK 17
+- Android SDK 34
+- Android 7.0 / API 24 或以上的设备或模拟器
 
-- **Android SDK and Android Studio**: Primary tools for app development.
-- **Java/Kotlin**: Programming languages used for writing application logic.
-- **Firebase**: Backend service for user authentication and real-time database functionalities.
-- **Google Maps API**: Provides mapping and location services.
-- **Material Design**: Ensures the app's user interface adheres to Android's design standards.
+### 配置
 
-## Architecture
+1. 克隆项目并使用 Android Studio 打开根目录：
 
-The app follows the Model-View-Controller (MVC) architectural pattern:
-
-1. **Model**: Contains the core data structures and business logic, including user information, emergency contacts, and settings data.
-2. **View**: Manages the layout files and user interface components, such as activities and fragments.
-3. **Controller**: Handles the interactions between the model and view, ensuring that user input is correctly processed, and the UI is updated accordingly.
-
-### Project Structure
-
-- **app/src/main/java/com/example/myapplication6**  
-  - Contains Java/Kotlin classes for managing the app’s logic and data, including:
-    - `Accessibility.java`: Manages the accessibility settings screen.
-    - `Contacts.java`: Provides functionalities for managing user contacts.
-    - `EmergencyHelp.java`: Handles emergency assistance features.
-    - `Home.java`: Represents the main home screen of the application.
-    - `LoginActivity.java`: Manages user authentication.
-    - `Setting.java`: Controls user settings.
-    - `Map.java`: Integrates map-based features.
-    - `SurvivalTips.java`: Displays emergency survival tips.
-    - `Users.java`: Manages user-related data.
-
-- **app/src/main/res/layout**  
-  - XML files for defining user interface layouts, including:
-    - `activity_accessibility.xml`: Accessibility settings screen layout.
-    - `activity_contacts.xml`: Contact management screen layout.
-    - `activity_home.xml`: Main home screen layout.
-    - `activity_emergency_help.xml`: Layout for emergency assistance.
-    - `activity_map.xml`: Layout for the mapping screen.
-    - `activity_alert_notification.xml`: Layout for the alert notifications screen, allowing users to manage and view emergency alerts and notifications settings.
-    - `activity_login.xml`: Defines the layout for the user login screen, allowing for secure login and authentication of users to access their personalized settings.
-    - `activity_map.xml`:  Layout for the mapping screen, which includes features like real-time location tracking, geofencing, and displaying user or family member locations on the map.
-    - `activity_privacy.xml`:  Layout for the privacy settings screen, where users can manage data sharing preferences, location permissions, and other privacy-related options.
-    - `activity_profile.xml`: Defines the layout for the user profile screen, where users can view and edit their account details, update profile information, and manage preferences.
-    - `activity_setting.xml`: Layout for the app settings screen, allowing users to customize various app preferences such as notifications, display options, and account settings.
-    - `activity_survival_tips.xml`: Defines the layout for the survival tips screen, where users can access tips and guidelines on how to stay safe in emergency situations.
-   
-## Installation
-
-### Prerequisites
-
-Ensure you have the following software installed:
-
-1. **Android Studio**: Latest version.
-2. **JDK**: JDK 17 for the project's Android Gradle Plugin 8.5.1.
-3. **Android SDK**: Installed with Android Studio.
-4. **Emulator or Physical Device**: For testing.
-
-### Installation Steps
-
-1. **Clone the Repository**  
-   Clone the project repository to your local machine using Git:
-   ```
-   git clone <YOUR_REPOSITORY_URL>
+   ```bash
+   git clone https://github.com/octane2099/Flood.git
+   cd Flood
    ```
 
-2. **Open the Project in Android Studio**  
-   Launch Android Studio and open the cloned project by navigating to the project directory.
+2. 让 Android Studio 生成 `local.properties`，或参考 `local.properties.example` 设置本机 Android SDK 路径。
 
-3. **Sync Gradle Files**  
-   Make sure all dependencies in the `build.gradle` file are up to date and synced with Gradle.
+3. 在自己的 Firebase 项目中注册 Android 应用，包名为 `com.example.myapplication6`，下载配置文件并放到 `app/google-services.json`。仓库中的 `.example` 只是格式示例，不能代替真实配置。按使用的功能配置 Realtime Database 及访问规则。
 
-4. **Configure local services**
-   Complete the setup below. The real `google-services.json` and `secrets.properties`
-   are intentionally excluded from version control. The `.example` files contain
-   placeholders only.
+4. 将根目录的 `secrets.properties.example` 复制为 `secrets.properties`，填写自己的 `MAPS_API_KEY`。使用 Google 登录时填写 `GOOGLE_WEB_CLIENT_ID`，并为自己的应用配置 OAuth 和签名证书信息。同名环境变量优先于该文件。
 
-## Setup
+5. 在自己的 Firebase 项目中启用 AI 服务并确认代码所选模型可用。当前代码尚未完成 App Check 接入；需要结合自己的 Firebase 控制台设置补齐客户端配置，才能验证相应云端访问。
 
-### API Keys and Configurations
+6. 同步 Gradle，然后构建并运行测试：
 
-1. **Google Maps and optional Google Sign-In configuration**
-   Copy `secrets.properties.example` to `secrets.properties` in the project root.
-   Set `MAPS_API_KEY` to your own Maps SDK for Android key. Set
-   `GOOGLE_WEB_CLIENT_ID` only if Google Sign-In is configured for your project.
-   Gradle supplies the Maps manifest placeholder and the `server_client_id` string
-   resource. Do not paste real values into source XML or Java files.
-   Environment variables with the same names override `secrets.properties`.
-
-2. **Firebase Setup**  
-   Configure the Firebase project and connect it with your Android app:
-   - Register your own Android app with package `com.example.myapplication6`.
-   - Download its real `google-services.json` and place it in `app/`.
-   - `app/google-services.json.example` documents the file shape; it is not a
-     working Firebase configuration. Do not use it to connect to a service.
-   - Configure Realtime Database and its access rules for the features you use.
-   - For Gemini, enable Firebase AI Logic and configure App Check in both the
-     client and Firebase console. App Check setup is still pending in this codebase.
-     See [Firebase's App Check guide](https://firebase.google.com/docs/ai-logic/app-check).
-
-3. **Permissions**  
-   Make sure to request the necessary permissions in `AndroidManifest.xml` for features such as:
-   - Location access for maps (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`).
-   - Internet access (`INTERNET` permission).
-
-4. **Local Android SDK**
-   Let Android Studio generate `local.properties`, or copy
-   `local.properties.example` and set `sdk.dir` to your local Android SDK.
-
-5. **Verify locally**
    ```powershell
    .\gradlew.bat :app:assembleDebug :app:testDebugUnitTest
    ```
-   APKs contain the client configuration used at build time and are excluded from
-   source sharing. Source cleanup does not remove credentials from existing Git
-   commits; see the privacy preparation notes before publishing any history.
 
-## Usage Guide
+   macOS / Linux 使用 `./gradlew`。连接设备后可执行 `:app:connectedDebugAndroidTest` 运行仪器测试。
 
-### Navigating the Application
+本仓库不包含真实服务配置，不能保证直接克隆后即可构建或访问云端。AI、地图和登录等功能需要网络及对应服务配置。AI 回答和示例提示仅用于项目演示，不应替代官方预警或紧急服务。
 
-1. **Home Screen**  
-   The home screen serves as the central hub, providing quick access to the main features.
-   
-2. **Accessing Settings**  
-   Navigate to the settings screen via the bottom navigation bar. Here, you can enable accessibility features, adjust notification settings, and customize the app appearance.
+## 配置隐私
 
-3. **Using the Emergency Help Feature**  
-   Access emergency help from the menu. This feature provides an interface to request emergency services or notify contacts in case of an emergency.
+真实服务配置、SDK 路径、签名文件、IDE 设置、构建产物和私有备份已加入 `.gitignore`。仅提交占位模板，不要将真实 Key 写入 Java、XML 或 README，也不要上传含个人配置的 APK。发布前检查暂存文件；忽略规则不会自动清除已经提交的内容。
 
-### Data Persistence
+## 项目来源与第三方说明
 
-The app uses `SharedPreferences` for storing settings and state changes. Firebase is utilized for real-time data storage and synchronization of user data.
-
-## Accessibility Features
-
-### Enabling High Contrast Mode
-
-High contrast mode can be toggled on/off from the accessibility settings. This mode enhances readability by increasing the contrast between text and background colors.
-
-### Colorblind Modes
-
-Users can choose from multiple colorblind options to adjust the app’s color scheme:
-- **Red-Green Blind**
-- **Blue-Yellow Blind**
-- **Full Color Blind**
-
-### Background Customization
-
-Toggle between black and white background options for improved visibility.
-
-## Emergency Features
-
-### Quick Access to Help
-
-The emergency help feature provides an interface for calling emergency services, sending alerts to contacts, and accessing survival tips.
-
-### Alert Notifications
-
-The app can display alert notifications to ensure important information is delivered promptly.
-
-## Contact Management
-
-### Adding Contacts
-
-Users can add new contacts by navigating to the contacts screen and selecting the "Add" button.
-
-### Editing and Deleting Contacts
-
-Contacts can be modified or removed from the list using the edit and delete options available in the contact management interface.
-
-### Associating Notes with Contacts
-
-Additional information such as notes can be stored with each contact.
-
-## Mapping and Location Services
-
-### Viewing the Map
-
-The mapping functionality integrates Google Maps to display the user's current location and nearby points of interest.
-
-### Navigation
-
-Users can get directions or share their location with emergency contacts.
-
-## Settings and Customization
-
-### User Preferences
-
-Modify application settings such as notifications, themes, and accessibility options.
-
-### Account Management
-
-Users can update their profiles, log out, or reset their settings from the settings screen.
-
-## Development Guidelines
-
-### Code Style
-
-Follow standard Java/Kotlin coding conventions:
-- Use meaningful variable names.
-- Keep methods short and concise.
-- Properly comment code blocks.
-
-### Version Control
-
-Use Git for version control. Each feature or bug fix should be on a separate branch and follow naming conventions like `feature/xyz` or `bugfix/abc`.
-
-### Testing
-
-1. **Unit Testing**: Ensure core functionalities are covered.
-2. **UI Testing**: Validate user interface components and user interactions.
-
-## Testing and Debugging
-
-### Testing Tools
-
-- **JUnit** for unit tests.
-- **Espresso** for UI testing.
-
-### Debugging Tips
-
-1. **Use Logcat**: For tracking errors and logs.
-2. **Breakpoints**: Set breakpoints to step through code.
-3. **Emulator vs. Physical Device**: Test on multiple devices to catch platform-specific issues.
-
-
-## Contributing
-1. Fork the project repository.
-2. Clone your fork locally.
-3. Make your changes and create a pull request.
-4. Follow the contribution guidelines provided in `CONTRIBUTING.md`.
-
+- 项目原有 README 引用了 [原团队仓库](https://github.com/malinyang123/111111)。本仓库从整理后的源码快照建立独立提交历史，保留团队项目来源说明；独立历史不改变原作者归属。
+- Gradle Wrapper 的版权及 Apache 2.0 声明保留在对应脚本中。Firebase、Google Maps、AndroidX、Material、Open-Meteo、OkHttp 和 Guava 等属于第三方依赖。
+- 部分图片和图标仍缺少完整来源记录，包括 `aklogo.png`、`healthicons.png`、`carbon_flood_warning.png`、`mdi_call.png`、`ion_search.png`、`baseline_*`、`ic_baseline_*`、`image*.png`、`group*.png` 和应用启动图标。文件名不能证明作者或许可，复用前需要进一步核对来源与使用条件。
+- 生存提示中的部分示例文本仍需校对和核实来源。
+- 本仓库暂未指定覆盖整个项目的统一开源许可证；第三方代码和素材遵循各自的许可条件。
